@@ -41,12 +41,12 @@ connectDB().then(() => {
     });
 
     app.post('/updateUser', async (req, res) => {
-
+        await User.findByIdAndUpdate(req.params.id)
     })
 
     app.get('/getJournal/:id', async (req, res) => {
         try {
-            const user = await Journal.findById(req.params.id);
+            const user = await Journal.findOne({id:req.params.id})
             if (!user) return res.status(404).send({ message: 'User not found' });
             return res.status(200).send(user);
         } catch (err) {
@@ -64,6 +64,17 @@ connectDB().then(() => {
             res.status(400).send({ error: err.message });
         }
     });
+
+    app.delete('/deleteUser/:id', async (req, res) => {
+        try{
+            await User.findByIdAndDelete(User,req.params.id)
+
+        }
+        catch(err)
+        {
+            res.status(400).send({error:err.message});
+        }
+    })
 
 }).catch((err) => {
     console.error("❌ Failed to connect to MongoDB, exiting...");
