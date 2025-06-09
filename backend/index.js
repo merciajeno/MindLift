@@ -1,8 +1,9 @@
+//require('dotenv').config();
 const express = require('express');
 const connectDB = require('./models/mongo');
 const User = require('./models/User');
 const Journal = require('./models/JournalSchema');
-const AnalyseJournal =require('./gemini/analyseSentiment');
+const AnalyseJournal =require('./analyseSentiment');
 
 const app = express();
 app.use(express.json());
@@ -122,11 +123,9 @@ connectDB().then(() => {
         try {
             const journal = await Journal.findById(req.params.id);
             if (!journal) return res.status(404).send({ error: 'Journal not found' });
-
-            const result = await AnalyseJournal("I am not feeling well");
-            console.log(JSON.parse(journal).text);
+            console.log(journal['text']);
+            const result = await AnalyseJournal(journal['text']);
             res.status(200).send({ sentiment_analysis: result });
-
         } catch (err) {
             console.error(err.message);
             res.status(500).send({ error: 'Failed to analyze journal' });
