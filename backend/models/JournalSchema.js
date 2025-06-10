@@ -9,7 +9,8 @@ const JournalEntrySchema = new mongoose.Schema(
             type: Date,
             default: Date.now
         },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true }
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
+        sentiment: { type: String }
     }
 )
 module.exports = mongoose.model('Journal',JournalEntrySchema,'journal')

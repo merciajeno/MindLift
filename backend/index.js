@@ -67,15 +67,6 @@ connectDB().then(() => {
         Journal.find({}).then((journal) => {res.status(200).send(journal)});
     })
 
-    app.get('/getJournal/:id', async (req, res) => {
-        try {
-            const user = await Journal.findOne({id:req.params.id})
-            if (!user) return res.status(404).send({ message: 'User not found' });
-            return res.status(200).send(user);
-        } catch (err) {
-            return res.status(400).send({ error: 'Invalid User ID' });
-        }
-    });
 
     app.get('/getJournalForUser/:id', async (req, res) => {
         try {
@@ -89,10 +80,12 @@ connectDB().then(() => {
 
     app.post('/addJournal/:id', async (req, res) => {
         try {
+
             const journal = new Journal({
                 text: req.body.text,
                 data:Date.now(),
-                user:req.params.id
+                user:req.params.id,
+                sentiment:await AnalyseJournal(req.body.text)
             });
             await journal.save();
             res.status(201).send({ message: 'Journal saved successfully' });
