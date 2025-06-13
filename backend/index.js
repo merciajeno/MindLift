@@ -4,6 +4,8 @@ const connectDB = require('./models/mongo');
 const User = require('./models/User');
 const Journal = require('./models/JournalSchema');
 const AnalyseJournal =require('./analyseSentiment');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(express.json());
@@ -35,16 +37,39 @@ connectDB().then(() => {
     });
 
 
-    app.post('/addUser', async (req, res) => {
+    app.post('/signup', async (req, res) => {
         try {
+            const alreadyExistingUser =  await User.findOne({email:req.body.email})
+            if(alreadyExistingUser){return res.status(400).send({error: 'Email already exist'});}
+            const phoneAlreadyExist = await User.findOne({Phone:req.body.Phone})
+            if(phoneAlreadyExist){
+                return res.status(400).send({error: 'Phone already exist'});
+            }
+            req.body.password = await bcrypt.hash(req.body.password, 12);
             const user = new User(req.body);
             await user.save();
-            res.status(201).send({ message: 'User saved successfully' });
+            return res.status(201).send({ message: 'User saved successfully' });
         } catch (err) {
-            res.status(400).send({ error: err.message });
+            return res.status(400).send({ error: err.message });
         }
     });
 
+    app.post('/login', async (req, res) => {
+        try{
+            const {name,password,email,age,phone }=req.body;
+            const user = await User.findOne({email:email})
+            if(!user){ return res.status(400).send({error:'User does not exist'})}
+            const passwordMatch = await bcrypt.compare(password,user.password);
+            if(!passwordMatch){return res.status(400).send({error:'Passwords do not match'})}
+            console.log('Logged in')
+            return res.status(200).send({'message':'Logged in'})
+
+        }
+        catch(err)
+        {
+            return res.status(400).send({ error: 'Invalid User ID' });
+        }
+    })
     app.post('/updateUser/:id', async (req, res) => {
         try {
             const updatedUser = await User.findByIdAndUpdate(
